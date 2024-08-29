@@ -26,5 +26,26 @@ int main() {
         cout << "Client can start sending and receiving data." << endl;
     }
 
+    char buffer[1024];
+    printf("Enter your message: ");
+    cin.getline(buffer, 1024);
+    int byteCount = send(clientSocket, buffer, 1024, 0);
+    if (byteCount == -1) {
+        cout << "Client error sending message: " << strerror(errno) << endl;
+        return -1;
+    } else {
+        cout << "Successfully sent " << byteCount << " bytes of data." << endl;
+    }
+
+    memset(buffer, 0, sizeof(buffer));
+    byteCount = recv(clientSocket, buffer, sizeof(buffer), 0);
+    if (byteCount < 0) {
+        cout << "Client error receiving data: " << strerror(errno) << endl;
+        return 0;
+    } else {
+        cout << "Message from server: " << buffer << endl;
+    }
+
+    shutdown(clientSocket, SHUT_RDWR);
     return 0;
 }
