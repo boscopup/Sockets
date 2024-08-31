@@ -4,11 +4,12 @@
 #include <cerrno>
 #include <cstring>
 #include <arpa/inet.h>
+#include "../shared/Data.h"
 
 using namespace std;
 
 int main() {
-    // Create client socket
+    // Create TCP client socket
     int clientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
     sockaddr_in serverAddress;
@@ -46,6 +47,32 @@ int main() {
         cout << "Message from server: " << buffer << endl;
     }
 
+
+    // Create UDP client socket
+    int clientSocketUDP = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+    sockaddr_in serverAddressUDP;
+    serverAddressUDP.sin_family = AF_INET;
+    serverAddressUDP.sin_port = htons(9999);
+    inet_aton("127.0.0.1", (in_addr*) &serverAddressUDP.sin_addr.s_addr);
+
+    // Send a Data structure to the server
+    memset(buffer, 0, sizeof(buffer));
+    Data data("Client Bob the Flying Pig");
+    data.setHealth(85);
+    strcpy(buffer, data.serialize().c_str());
+
+    int bytesSent = sendto(clientSocketUDP, (char *) buffer, strlen(buffer), 0, 
+            (struct sockaddr*) &serverAddressUDP, sizeof(serverAddressUDP));
+    if (bytesSent < 0) {
+        cout << "Error transmitting UDP data." << endl;
+        return 0;
+    } else {
+        cout << "Data sent: " << buffer << endl;
+    }
+
     shutdown(clientSocket, SHUT_RDWR);
+    shutdown(clientSocketUDP, SHUT_RDWR);
+
     return 0;
 }
